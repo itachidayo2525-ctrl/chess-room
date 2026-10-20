@@ -1,10 +1,13 @@
-import {Chess} from 'https://esm.sh/chess.js@1.4.0';
+import {Chess} from '/vendor/chess.js';
 const $=id=>document.getElementById(id),socket=io(),chess=new Chess();let color=null,selected=null,current=null;
 const glyph={w:{k:'♔',q:'♕',r:'♖',b:'♗',n:'♘',p:'♙'},b:{k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'}};
 function msg(t){$('message').textContent=t}
 $('join').onclick=()=>{socket.emit('join',$('code').value,r=>{if(r.error){alert(r.error);return}color=r.color;$('lobby').classList.add('hidden');$('game').classList.remove('hidden');$('role').textContent='あなたは '+(color==='w'?'白（先手）':'黒（後手）');update(r.state)})};
 $('code').addEventListener('keydown',e=>{if(e.key==='Enter')$('join').click()});
 $('restart').onclick=()=>socket.emit('restart',r=>{if(r?.error)msg(r.error)});
+socket.on('disconnect',()=>{msg('接続が切れました。再接続後に同じ合言葉で入室してください');$('join').disabled=true});
+socket.on('connect',()=>{$('join').disabled=false;if(color){color=null;current=null;selected=null;$('promotion').classList.add('hidden');$('game').classList.add('hidden');$('lobby').classList.remove('hidden')}});
+socket.on('connect_error',()=>{$('join').disabled=true;});
 socket.on('notice',msg);socket.on('state',update);
 function update(s){if(!color)return;current=s;chess.load(s.fen);selected=null;render();$('online').textContent=`接続中：${Number(s.players.w)+Number(s.players.b)}/2 人`;let status=s.checkmate?`${s.winner==='w'?'白':'黒'}の勝ち！ チェックメイト`:s.draw?'引き分け':!s.players.w||!s.players.b?'対戦相手を待っています':s.turn===color?'あなたの番です':'相手の番です';if(s.check&&!s.over)status+='（チェック）';$('status').textContent=status;$('moves').textContent=s.history.map((m,i)=>(i%2===0?`${Math.floor(i/2)+1}. `:'')+m.san).join('  ')}
 function render(){const board=$('board');board.replaceChildren();const ranks=color==='w'?'87654321':'12345678',files=color==='w'?'abcdefgh':'hgfedcba';const targets=selected?chess.moves({square:selected,verbose:true}).map(m=>m.to):[];const last=current?.history?.at(-1);for(const rank of ranks)for(const file of files){const square=file+rank,piece=chess.get(square),b=document.createElement('button');b.className=`sq ${(files.indexOf(file)+ranks.indexOf(rank))%2?'dark':'light'}`;if(selected===square)b.classList.add('selected');if(targets.includes(square))b.classList.add('target');if(last&&(last.from===square||last.to===square))b.classList.add('last');b.setAttribute('aria-label',square+(piece?' '+piece.color+piece.type:''));if(piece){b.textContent=glyph[piece.color][piece.type];b.classList.add(piece.color==='w'?'whitepiece':'blackpiece')}b.onclick=()=>clickSquare(square);board.appendChild(b)}}

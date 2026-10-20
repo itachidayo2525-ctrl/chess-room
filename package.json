@@ -1,1 +1,20 @@
-{"name":"chess-room","version":"1.0.0","type":"module","scripts":{"start":"node server.js"},"dependencies":{"chess.js":"^1.4.0","express":"^4.21.2","socket.io":"^4.8.1"},"engines":{"node":">=18"}}
+{
+  "name": "chess-room",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "chess.js": "^1.4.0",
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.1"
+  }
+}
